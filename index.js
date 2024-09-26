@@ -31,6 +31,7 @@ async function run() {
     const candidatesCollection = client
       .db("CollegeDB")
       .collection("candidates");
+    const reviewCollection = client.db("CollegeDB").collection("reviews");
 
     app.get("/allColleges", async (req, res) => {
       let query = {};
