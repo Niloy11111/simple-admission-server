@@ -32,6 +32,7 @@ async function run() {
       .db("CollegeDB")
       .collection("candidates");
     const reviewCollection = client.db("CollegeDB").collection("reviews");
+    const usersCollection = client.db("CollegeDB").collection("users");
 
     app.get("/allColleges", async (req, res) => {
       let query = {};
@@ -48,6 +49,93 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await allCollegesCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.get("/allColleges/nameOfCollege/:collegeName", async (req, res) => {
+      const collegeName = req.params.collegeName;
+      const query = { collegeName: collegeName };
+      const result = await allCollegesCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.get("/users", async (req, res) => {
+      const cursor = usersCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.post("/users", async (req, res) => {
+      const data = req.body;
+      const query = { email: data.email };
+      const exist = await usersCollection.findOne(query);
+      if (exist) {
+        return res.send({ message: "already exists", insertedId: null });
+      }
+      const result = await usersCollection.insertOne(data);
+      res.send(result);
+    });
+
+    app.patch("/addCandidateInfoAsUserInfo/:email", async (req, res) => {
+      const item = req.body;
+      const email = req.params.email;
+      const filter = { email: email };
+      const updatedDoc = {
+        $set: {
+          photoURL: item.photoURL,
+          name: item.name,
+          email: item.email,
+          address: item.address,
+          number: item.number,
+          subject: item.subject,
+          birthDate: item.birthDate,
+          collegeName: item.collegeName,
+          collegeImage: item.collegeImage,
+          admissionDate: item.admissionDate,
+          admissionProcess: item.admissionProcess,
+          events: item.events,
+          researchHistory: item.researchHistory,
+          sports: item.sports,
+          sportsCategories: item.sportsCategories,
+          researchWorks: item.researchWorks,
+          collegeRating: item.collegeRating,
+          numberOfResearch: item.numberOfResearch,
+        },
+      };
+
+      const result = await usersCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+    app.patch("/resetPassword/:email", async (req, res) => {
+      const item = req.body;
+      const email = req.params.email;
+      const filter = { email: email };
+      const updatedDoc = {
+        $set: {
+          password: item.password,
+        },
+      };
+
+      const result = await usersCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+    app.get("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
+    app.get("/users/email/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      if (email === "hello@hello.com") {
+        console.log("invalid email");
+        return res.status(400).send({ message: "Invalid email." });
+      }
+      console.log(query);
+      const result = await usersCollection.findOne(query);
       res.send(result);
     });
 
